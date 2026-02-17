@@ -35,14 +35,20 @@ app.get("/message", async (req, res) => {
 
     const data = await response.json();
 
+    console.log("FULL GEMINI RESPONSE:", JSON.stringify(data));
+
+    if (!data.candidates) {
+      return res.json({ error: data });
+    }
+
     const answer =
-      data.candidates?.[0]?.content?.parts?.[0]?.text || "No answer";
+      data.candidates[0].content.parts[0].text;
 
     res.json({ message: answer });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("SERVER ERROR:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
