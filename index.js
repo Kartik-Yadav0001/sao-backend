@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("SAO Backend Running 🚀");
+  res.send("SAO Groq Backend Running 🚀");
 });
 
 app.get("/message", async (req, res) => {
@@ -19,49 +19,41 @@ app.get("/message", async (req, res) => {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          contents: [
+          model: "llama3-8b-8192",
+          messages: [
             {
-              parts: [
-                {
-                  text:
-                    input +
-                    "\n\nIMPORTANT: Return ONLY the correct option letter (A, B, C, or D). No explanation."
-                }
-              ]
+              role: "system",
+              content:
+                "You are an MCQ solver. Always return ONLY the correct option letter (A, B, C, or D). Never explain."
+            },
+            {
+              role: "user",
+              content: input
             }
           ],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 10
-          }
+          temperature: 0.2,
+          max_tokens: 10
         })
       }
     );
 
     const data = await response.json();
 
-    console.log("==== GEMINI RAW RESPONSE ====");
-    console.log(JSON.stringify(data, null, 2));
+    console.log("GROQ RESPONSE:", JSON.stringify(data, null, 2));
 
-    let answer = "";
-
-    // Safe extraction (handles multiple structures)
-    if (data?.candidates?.length > 0) {
-      const parts = data.candidates[0]?.content?.parts;
-      if (parts && parts.length > 0) {
-        answer = parts.map(p => p.text || "").join(" ").trim();
-      }
-    }
+    let answer =
+      data?.choices?.[0]?.message?.content?.trim() || "";
 
     if (!answer) {
-      return res.json({ message: "ERROR_CHECK_LOGS" });
+      return res.json({ message: "No answer" });
     }
 
     // Extract only A/B/C/D
