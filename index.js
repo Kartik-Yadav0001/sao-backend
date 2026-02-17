@@ -27,7 +27,7 @@ app.get("/message", async (req, res) => {
           "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
         },
         body: JSON.stringify({
-          model: "llama3-8b-8192",
+          model: "llama-3.3-70b-versatile",
           messages: [
             {
               role: "system",
@@ -56,7 +56,6 @@ app.get("/message", async (req, res) => {
       return res.json({ message: "No answer" });
     }
 
-    // Extract only A/B/C/D
     const match = answer.match(/[A-D]/i);
     const finalAnswer = match ? match[0].toUpperCase() : answer;
 
