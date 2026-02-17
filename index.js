@@ -28,24 +28,45 @@ app.get("/message", async (req, res) => {
         body: JSON.stringify({
           contents: [
             {
-              parts: [{
-                text: input + 
-                "\n\nIMPORTANT: Return ONLY the correct option letter (A, B, C, or D). Do NOT explain. Just return the letter."
-              }]
+              parts: [
+                {
+                  text:
+                    input +
+                    "\n\nReturn ONLY the correct option letter (A, B, C, or D). Do NOT explain. Just return one letter."
+                }
+              ]
             }
-          ]
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 5
+          }
         })
       }
     );
 
     const data = await response.json();
 
-    const answer =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    console.log("FULL GEMINI RESPONSE:", JSON.stringify(data));
 
-    res.json({ message: answer || "No answer" });
+    let answer = "";
+
+    if (data.candidates && data.candidates.length > 0) {
+      answer = data.candidates[0]?.content?.parts?.[0]?.text?.trim();
+    }
+
+    if (!answer) {
+      return res.json({ message: "No answer" });
+    }
+
+    // Extract only A/B/C/D
+    const letterMatch = answer.match(/[A-D]/i);
+    const finalAnswer = letterMatch ? letterMatch[0].toUpperCase() : answer;
+
+    res.json({ message: finalAnswer });
 
   } catch (error) {
+    console.error("SERVER ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
