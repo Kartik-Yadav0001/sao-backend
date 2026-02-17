@@ -28,7 +28,10 @@ app.get("/message", async (req, res) => {
         body: JSON.stringify({
           contents: [
             {
-              parts: [{ text: input }]
+              parts: [{
+                text: input + 
+                "\n\nIMPORTANT: Return ONLY the correct option letter (A, B, C, or D). Do NOT explain. Just return the letter."
+              }]
             }
           ]
         })
@@ -37,19 +40,12 @@ app.get("/message", async (req, res) => {
 
     const data = await response.json();
 
-    console.log("FULL GEMINI RESPONSE:", JSON.stringify(data));
-
-    if (!data.candidates) {
-      return res.json({ error: data });
-    }
-
     const answer =
-      data.candidates[0].content.parts[0].text;
+      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-    res.json({ message: answer });
+    res.json({ message: answer || "No answer" });
 
   } catch (error) {
-    console.error("SERVER ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 });
