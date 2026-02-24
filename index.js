@@ -29,20 +29,20 @@ app.get("/message", async (req, res) => {
           "X-Title": "SAO MCQ Solver"
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.1-8b-instruct:free",
+          model: "openrouter/auto",
           messages: [
             {
               role: "system",
               content:
-                "You are an MCQ solver. Always return ONLY the correct option letter (A, B, C, or D). Never explain."
+                "You are an MCQ solver. Always return ONLY the correct option letter (A, B, C, or D). Never explain anything else."
             },
             {
               role: "user",
               content: input
             }
           ],
-          temperature: 0.2,
-          max_tokens: 10
+          temperature: 0.1,
+          max_tokens: 5
         })
       }
     );
@@ -51,11 +51,17 @@ app.get("/message", async (req, res) => {
 
     console.log("OPENROUTER RESPONSE:", JSON.stringify(data, null, 2));
 
+    if (data.error) {
+      return res.status(500).json({ error: data.error.message });
+    }
+
     let answer =
-      data?.choices?.[0]?.message?.content?.trim() || "";
+      data?.choices?.[0]?.message?.content?.trim() ||
+      data?.choices?.[0]?.text?.trim() ||
+      "";
 
     if (!answer) {
-      return res.json({ message: "No answer" });
+      return res.json({ message: "No answer from model" });
     }
 
     const match = answer.match(/[A-D]/i);
