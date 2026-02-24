@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("SAO Groq Backend Running 🚀");
+  res.send("SAO OpenRouter Backend Running 🚀");
 });
 
 app.get("/message", async (req, res) => {
@@ -19,15 +19,17 @@ app.get("/message", async (req, res) => {
     }
 
     const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
+      "https://openrouter.ai/api/v1/chat/completions",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "https://sao-backend-ync4.onrender.com",
+          "X-Title": "SAO MCQ Solver"
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "meta-llama/llama-3.1-8b-instruct:free",
           messages: [
             {
               role: "system",
@@ -47,7 +49,7 @@ app.get("/message", async (req, res) => {
 
     const data = await response.json();
 
-    console.log("GROQ RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("OPENROUTER RESPONSE:", JSON.stringify(data, null, 2));
 
     let answer =
       data?.choices?.[0]?.message?.content?.trim() || "";
