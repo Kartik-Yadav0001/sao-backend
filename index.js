@@ -7,7 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("SAO OpenRouter Backend Running 🚀");
+  res.send("SAO OpenAI Backend Running 🚀");
 });
 
 app.get("/message", async (req, res) => {
@@ -19,22 +19,20 @@ app.get("/message", async (req, res) => {
     }
 
     const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
+      "https://api.openai.com/v1/chat/completions",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "HTTP-Referer": "https://sao-backend-ync4.onrender.com",
-          "X-Title": "SAO MCQ Solver"
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "openrouter/auto",
+          model: "gpt-4o-mini", 
           messages: [
             {
               role: "system",
               content:
-                "You are an MCQ solver. Always return ONLY the correct option letter (A, B, C, or D). Never explain anything else."
+                "You are an MCQ solver. Always return ONLY the correct option letter (A, B, C, or D). Never explain."
             },
             {
               role: "user",
@@ -49,16 +47,14 @@ app.get("/message", async (req, res) => {
 
     const data = await response.json();
 
-    console.log("OPENROUTER RESPONSE:", JSON.stringify(data, null, 2));
+    console.log("OPENAI RESPONSE:", JSON.stringify(data, null, 2));
 
     if (data.error) {
       return res.status(500).json({ error: data.error.message });
     }
 
     let answer =
-      data?.choices?.[0]?.message?.content?.trim() ||
-      data?.choices?.[0]?.text?.trim() ||
-      "";
+      data?.choices?.[0]?.message?.content?.trim() || "";
 
     if (!answer) {
       return res.json({ message: "No answer from model" });
